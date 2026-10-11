@@ -83,6 +83,18 @@ canvas.chart{width:100%;height:200px;display:block}
   background:var(--panel2);border:1px solid var(--line);padding:8px 14px;border-radius:999px}
 .tnode b{color:var(--txt)}
 .tarrow{color:var(--faint);margin:0 8px;font-size:14px}
+/* compare mode */
+.bar{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.cmp-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
+@media(max-width:640px){.cmp-grid{grid-template-columns:1fr}}
+.cmpcard{text-align:center;position:relative}
+.champ{border:1px solid rgba(16,185,129,.55);box-shadow:0 0 36px rgba(16,185,129,.16)}
+.winbadge{display:inline-block;font-family:'Space Grotesk';font-weight:800;font-size:15px;padding:9px 22px;border-radius:999px;
+  background:var(--grad);color:#04120d;margin-bottom:10px;animation:pop .45s ease both;box-shadow:0 6px 24px rgba(16,185,129,.35)}
+.tieb{background:linear-gradient(135deg,#38bdf8,#a855f7);box-shadow:0 6px 24px rgba(56,189,248,.3)}
+.kvals{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;text-align:left}
+.kval{background:var(--panel2);border:1px solid var(--line);border-radius:11px;padding:10px 12px;font-size:12.5px;color:var(--dim)}
+.kval b{display:block;color:var(--txt);font-size:15px;font-family:'Space Grotesk';margin-top:2px}
 /* skeleton */
 .skel{border-radius:22px;padding:60px 20px;text-align:center;color:var(--dim);border:1px dashed var(--line)}
 .spinner{width:44px;height:44px;border:3px solid rgba(16,185,129,.2);border-top-color:var(--em);border-radius:50%;margin:0 auto 14px;animation:sp .8s linear infinite}
@@ -107,12 +119,23 @@ canvas.chart{width:100%;height:200px;display:block}
   </div>
 
   <div class="controls">
-    <select id="station" aria-label="Monitoring station"></select>
+    <div class="seg" role="tablist" aria-label="Mode">
+      <button id="modeSingle" class="on" onclick="setMode('single')">Single Station</button>
+      <button id="modeCompare" onclick="setMode('compare')">⚖️ Compare</button>
+    </div>
+    <div class="bar" id="singleBar">
+      <select id="station" aria-label="Monitoring station"></select>
+      <button class="btn" id="go" onclick="run()">Analyze Air</button>
+    </div>
+    <div class="bar" id="compareBar" style="display:none">
+      <select id="stationA" aria-label="First station"></select>
+      <select id="stationB" aria-label="Second station"></select>
+      <button class="btn" id="compareGo" onclick="runCompare()">⚖️ Compare</button>
+    </div>
     <div class="seg" role="tablist">
       <button id="langEn" class="on" onclick="setLang('en')">English</button>
       <button id="langUr" onclick="setLang('ur')">Roman Urdu</button>
     </div>
-    <button class="btn" id="go" onclick="run()">Analyze Air</button>
   </div>
 
   <div id="out">
@@ -129,8 +152,18 @@ canvas.chart{width:100%;height:200px;display:block}
 <script>
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-let lang='en';
+let lang='en', mode='single';
 function setLang(l){lang=l;$('langEn').classList.toggle('on',l==='en');$('langUr').classList.toggle('on',l==='ur');}
+function setMode(m){
+  mode=m;
+  $('modeSingle').classList.toggle('on',m==='single');
+  $('modeCompare').classList.toggle('on',m==='compare');
+  $('singleBar').style.display=m==='single'?'flex':'none';
+  $('compareBar').style.display=m==='compare'?'flex':'none';
+  $('out').innerHTML=m==='compare'
+    ?`<div class="skel"><div style="font-size:40px;margin-bottom:10px">⚖️</div>Pick <b>two</b> monitoring stations and press <b>Compare</b> — the cleaner-air station wins.</div>`
+    :`<div class="skel" id="placeholder"><div style="font-size:40px;margin-bottom:10px">🌬️</div>Pick a monitoring station and press <b>Analyze Air</b> — the three agents will fetch, analyze and advise in seconds.</div>`;
+}
 function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),3800);}
 
 const CATKEY=c=>({'Good':'c-Good','Moderate':'c-Moderate','Unhealthy for Sensitive Groups':'c-USG','Unhealthy':'c-Unhealthy','Very Unhealthy':'c-VU','Hazardous':'c-Hazardous'}[c]||'c-Moderate');
@@ -164,7 +197,10 @@ function drawTrend(canvas,vals){
 async function init(){
   try{
     const s=await (await fetch('/api/status')).json();
-    s.stations.forEach(st=>{const o=document.createElement('option');o.value=o.textContent=st;$('station').appendChild(o);});
+    const mk=(sel,defIdx)=>{s.stations.forEach((st,i)=>{const o=document.createElement('option');o.value=o.textContent=st;if(i===defIdx)o.selected=true;$(sel).appendChild(o);});};
+    mk('station',0);
+    mk('stationA',0);
+    mk('stationB',s.stations.length>1?1:0);
     $('liveLine').textContent=s.stations.length+' stations online';
     $('provLine').textContent='action: '+esc(s.action_provider||'');
   }catch(e){$('liveLine').textContent='backend unreachable';}
@@ -209,6 +245,53 @@ async function run(){
     $('out').scrollIntoView({behavior:'smooth',block:'start'});
   }catch(e){$('out').innerHTML=`<div class="skel">⚠️ ${esc(e.message)}</div>`;toast(e.message);}
   btn.disabled=false;btn.textContent='Analyze Air';
+}
+
+const TDIR=t=>t.direction==='rising'?'📈 rising':t.direction==='falling'?'📉 falling':'➖ stable';
+
+function cmpCard(rep,tag,winner){
+  if(!rep.ok)return `<div class="card cmpcard"><h3>${esc(rep.station||tag)}</h3><div class="skel" style="padding:30px 16px">⚠️ ${esc(rep.error||'unavailable')}</div></div>`;
+  const c=rep.category,t=rep.trend,f=rep.forecast,a=rep.action;
+  const badge=winner==='tie'
+    ?`<div class="winbadge tieb">🤝 TIE</div>`
+    :(winner===tag?`<div class="winbadge">🏆 CLEANER AIR</div>`:'');
+  const fline=f.ok?`<div class="kval">24h peak<b>${f.peak_pm25} µg/m³ in ~${f.peak_hour_ahead}h</b></div>`:`<div class="kval">24h peak<b>—</b></div>`;
+  return `<div class="card cmpcard ${winner===tag?'champ':''}">
+    ${badge}
+    <div style="font-size:13px;color:var(--dim);letter-spacing:.5px;text-transform:uppercase;font-weight:700">${esc(rep.station)}</div>
+    ${gauge(c.pm25,c.category)}
+    <div><span class="catbadge ${CATKEY(c.category)}">${esc(c.category)}</span></div>
+    <div class="kvals">
+      <div class="kval">PM2.5<b>${c.pm25.toFixed(1)} µg/m³</b></div>
+      <div class="kval">7-day avg<b>${t.avg_pm25} µg/m³</b></div>
+      <div class="kval">Trend<b>${TDIR(t.direction)}</b></div>
+      <div class="kval">Alert level<b>${esc(a.alert_level)}</b></div>
+      ${fline}
+      <div class="kval">Source<b style="font-size:12px">${esc(rep.latest.source||'—').slice(0,26)}</b></div>
+    </div>
+    <div class="srcnote">${esc(rep.latest.timestamp||'')}</div>
+  </div>`;
+}
+
+async function runCompare(){
+  const sa=$('stationA').value,sb=$('stationB').value,btn=$('compareGo');
+  if(sa===sb){toast('Pick two different stations to compare');return;}
+  btn.disabled=true;btn.textContent='Comparing…';
+  $('out').innerHTML=`<div class="skel"><div class="spinner"></div>Data agent fetching both stations · Analysis agent comparing…</div>`;
+  try{
+    const r=await fetch(`/api/compare?station_a=${encodeURIComponent(sa)}&station_b=${encodeURIComponent(sb)}&lang=${lang}`);
+    const d=await r.json();
+    if(!r.ok||!d.ok)throw new Error(d.error||'compare failed');
+    const ra=d.station_a,rb=d.station_b;
+    let winner=null;
+    if(ra.ok&&rb.ok){
+      const pa=ra.category.pm25,pb=rb.category.pm25;
+      winner=Math.abs(pa-pb)<0.05?'tie':(pa<pb?'a':'b');
+    }
+    $('out').innerHTML=`<div class="cmp-grid">${cmpCard(ra,'a',winner)}${cmpCard(rb,'b',winner)}</div>`;
+    $('out').scrollIntoView({behavior:'smooth',block:'start'});
+  }catch(e){$('out').innerHTML=`<div class="skel">⚠️ ${esc(e.message)}</div>`;toast(e.message);}
+  btn.disabled=false;btn.textContent='⚖️ Compare';
 }
 init();
 </script>
