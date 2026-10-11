@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HawaGuard — Multi-Agent AI for Clean Air</title>
+<style>
+  body { font-family: system-ui, sans-serif; background: #0b1020; color: #e8ecf4; margin: 0; padding: 24px; }
+  .wrap { max-width: 860px; margin: 0 auto; }
+  h1 { font-size: 28px; margin-bottom: 4px; }
+  .sub { color: #9aa4bd; margin-bottom: 20px; }
+  .card { background: #141b31; border: 1px solid #26304d; border-radius: 12px; padding: 18px; margin-bottom: 16px; }
+  .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+  select, button { font-size: 16px; padding: 10px 14px; border-radius: 8px; border: 1px solid #33406a; background: #1b2440; color: #e8ecf4; }
+  button { background: #2f6bff; border: none; cursor: pointer; font-weight: 600; }
+  button:disabled { opacity: .5; }
+  .big { font-size: 44px; font-weight: 800; }
+  .badge { display: inline-block; padding: 4px 12px; border-radius: 999px; font-weight: 700; font-size: 14px; }
+  .Good { background: #1d7a3a; } .Moderate { background: #8a6d1c; }
+  .Unhealthy\ for\ Sensitive\ Groups { background: #8a4a1c; } .Unhealthy { background: #8a2f1c; }
+  .Very\ Unhealthy { background: #6d1c5a; } .Hazardous { background: #4d1020; }
+  ul { padding-left: 20px; } li { margin-bottom: 6px; }
+  .trace { font-size: 12px; color: #9aa4bd; }
+  .bar { height: 10px; background: #26304d; border-radius: 5px; overflow: hidden; margin-top: 6px; }
+  .bar > div { height: 100%; background: #2f6bff; }
+  #chart { width: 100%; height: 180px; background: #0e1428; border-radius: 8px; }
+  .note { font-size: 12px; color: #9aa4bd; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🌬️ HawaGuard</h1>
+  <div class="sub">Three AI agents — <b>Data</b> fetches real pollution data, <b>Analysis</b> understands it, <b>Action</b> tells you what to do.</div>
+
+  <div class="card">
+    <div class="row">
+      <select id="station"></select>
+      <select id="lang">
+        <option value="en">English</option>
+        <option value="ur">Roman Urdu</option>
+      </select>
+      <button id="go" onclick="run()">Analyze Air</button>
+    </div>
+  </div>
+
+  <div id="out"></div>
+  <div class="note">Data: real Beijing monitoring-station measurements (315k hourly rows) + live WAQI feed. Forecast is a naive baseline, honestly labeled. Action guidance: EPA-based rules.</div>
+</div>
+
+<script>
+async function init() {
+  const s = await (await fetch('/api/status')).json();
+  const sel = document.getElementById('station');
+  s.stations.forEach(st => { const o = document.createElement('option'); o.value = o.text = st; sel.appendChild(o); });
+}
+async function run() {
+  const st = document.getElementById('station').value;
+  const lang = document.getElementById('lang').value;
+  const btn = document.getElementById('go'); btn.disabled = true; btn.textContent = 'Agents working…';
+  const r = await (await fetch(`/api/report?station=${encodeURIComponent(st)}&lang=${lang}`)).json();
+  btn.disabled = false; btn.textContent = 'Analyze Air';
+  if (!r.ok) { document.getElementById('out').innerHTML = `<div class="card">Error: ${r.error}</div>`; return; }
+  const c = r.category, t = r.trend, f = r.forecast, a = r.action;
+  const fc = f.ok ? f.next_24h_pm25 : [];
+  const mx = Math.max(...fc, c.pm25, 1);
+  let bars = '';
+  if (fc.length) {
+    const step = Math.max(1, Math.floor(fc.length / 24));
+    for (let i = 0; i < fc.length; i += step) {
+      bars += `<div class="bar"><div style="width:${(fc[i]/mx*100).toFixed(1)}%"></div></div>`;
+    }
+  }
+  document.getElementById('out').innerHTML = `
+    <div class="card"><div class="row" style="justify-content:space-between">
+      <div><div class="big">${c.pm25.toFixed(1)} <span style="font-size:16px">µg/m³ PM2.5</span></div>
+      <div class="note">${r.latest.timestamp} · ${r.latest.source}</div></div>
+      <div><span class="badge ${c.category}">${c.category}</span>
+      <div class="note" style="margin-top:6px">Alert: <b>${a.alert_level}</b></div></div>
+    </div></div>
+    <div class="card"><b>📊 7-day trend:</b> ${t.direction} (avg ${t.avg_pm25} µg/m³, slope ${t.slope_per_hour}/h)
+      <br><b>🔮 Next 24h forecast</b> <span class="note">(${f.method})</span> — peak ~${f.peak_pm25} µg/m³ in ~${f.peak_hour_ahead}h
+      <div style="margin-top:8px">${bars}</div></div>
+    <div class="card"><b>📢 ${a.provider === 'heuristic' ? 'Guidance (rule-based)' : 'Guidance (AI-assisted)'}:</b>
+      <p>${a.summary}</p><ul>${a.recommendations.map(x => `<li>${x}</li>`).join('')}</ul></div>
+    <div class="card trace"><b>Agent trace:</b> ${r.trace.map(x => `${x.agent}:${x.step}`).join(' → ')}
+      ${r.live.ok ? `<br>Live now: AQI ${r.live.aqi} (${r.live.source})` : `<br>Live feed: unavailable — ${r.live.error || ''}`}</div>`;
+}
+init();
+</script>
+</body>
+</html>
