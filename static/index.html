@@ -4,86 +4,211 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>HawaGuard — Multi-Agent AI for Clean Air</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
-  body { font-family: system-ui, sans-serif; background: #0b1020; color: #e8ecf4; margin: 0; padding: 24px; }
-  .wrap { max-width: 860px; margin: 0 auto; }
-  h1 { font-size: 28px; margin-bottom: 4px; }
-  .sub { color: #9aa4bd; margin-bottom: 20px; }
-  .card { background: #141b31; border: 1px solid #26304d; border-radius: 12px; padding: 18px; margin-bottom: 16px; }
-  .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
-  select, button { font-size: 16px; padding: 10px 14px; border-radius: 8px; border: 1px solid #33406a; background: #1b2440; color: #e8ecf4; }
-  button { background: #2f6bff; border: none; cursor: pointer; font-weight: 600; }
-  button:disabled { opacity: .5; }
-  .big { font-size: 44px; font-weight: 800; }
-  .badge { display: inline-block; padding: 4px 12px; border-radius: 999px; font-weight: 700; font-size: 14px; }
-  .Good { background: #1d7a3a; } .Moderate { background: #8a6d1c; }
-  .Unhealthy\ for\ Sensitive\ Groups { background: #8a4a1c; } .Unhealthy { background: #8a2f1c; }
-  .Very\ Unhealthy { background: #6d1c5a; } .Hazardous { background: #4d1020; }
-  ul { padding-left: 20px; } li { margin-bottom: 6px; }
-  .trace { font-size: 12px; color: #9aa4bd; }
-  .bar { height: 10px; background: #26304d; border-radius: 5px; overflow: hidden; margin-top: 6px; }
-  .bar > div { height: 100%; background: #2f6bff; }
-  #chart { width: 100%; height: 180px; background: #0e1428; border-radius: 8px; }
-  .note { font-size: 12px; color: #9aa4bd; }
+:root{
+  --bg:#060d12; --panel:rgba(255,255,255,.035); --panel2:rgba(255,255,255,.06);
+  --line:rgba(255,255,255,.09); --txt:#f0fdf9; --dim:#8fa3b0; --faint:#5b6b78;
+  --em:#10b981; --sky:#38bdf8; --grad:linear-gradient(135deg,#10b981,#38bdf8);
+  --r:18px;
+  --g1:#22c55e; --g2:#eab308; --g3:#f97316; --g4:#ef4444; --g5:#a855f7; --g6:#7f1d1d;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:'Inter',system-ui,sans-serif;color:var(--txt);min-height:100vh;
+  background:
+    radial-gradient(1000px 520px at 10% -5%, rgba(16,185,129,.13), transparent 60%),
+    radial-gradient(900px 520px at 95% 5%, rgba(56,189,248,.10), transparent 60%),
+    var(--bg);}
+h1,h2,h3,.sg{font-family:'Space Grotesk',sans-serif}
+.wrap{max-width:1120px;margin:0 auto;padding:24px 20px 48px}
+/* header */
+.top{display:flex;align-items:center;gap:16px;padding:20px 24px;border:1px solid var(--line);border-radius:22px;
+  background:var(--panel);backdrop-filter:blur(14px);animation:rise .6s ease both}
+.logo{width:54px;height:54px;border-radius:17px;background:var(--grad);display:grid;place-items:center;flex:none;
+  box-shadow:0 8px 32px rgba(16,185,129,.35)}
+.logo svg{width:28px;height:28px}
+.top h1{margin:0;font-size:24px}.top h1 span{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.top p{margin:5px 0 0;color:var(--dim);font-size:13.5px;max-width:640px}
+.live{margin-left:auto;text-align:right;flex:none}
+.live .dotrow{display:flex;align-items:center;gap:8px;justify-content:flex-end;font-size:12.5px;color:var(--dim)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--em);box-shadow:0 0 10px var(--em);animation:pulse 2s infinite}
+/* controls */
+.controls{margin-top:16px;padding:18px 22px;display:flex;gap:12px;flex-wrap:wrap;align-items:center;
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--r);animation:rise .6s .08s ease both}
+select{background:rgba(255,255,255,.05);border:1px solid var(--line);color:var(--txt);border-radius:12px;
+  padding:12px 14px;font-size:14px;font-family:inherit;outline:none;cursor:pointer;max-width:260px}
+select:focus{border-color:var(--em)}
+select option{background:#0c141b}
+.seg{display:flex;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.seg button{border:none;background:transparent;color:var(--dim);padding:12px 18px;font-size:13.5px;font-weight:600;cursor:pointer;font-family:inherit}
+.seg button.on{background:var(--grad);color:#04120d}
+.btn{background:var(--grad);border:none;color:#04120d;font-weight:800;font-size:14.5px;padding:13px 30px;border-radius:13px;
+  cursor:pointer;font-family:'Space Grotesk';letter-spacing:.3px;transition:.2s;box-shadow:0 8px 26px rgba(16,185,129,.3)}
+.btn:hover{transform:translateY(-1px)}.btn:disabled{opacity:.55;cursor:wait;transform:none}
+/* result grid */
+#out{margin-top:16px;display:grid;gap:16px}
+.hero{display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:center;padding:26px;
+  background:var(--panel);border:1px solid var(--line);border-radius:22px;animation:pop .45s ease both}
+@media(max-width:640px){.hero{grid-template-columns:1fr;text-align:center}}
+.gauge{position:relative;width:190px;height:190px;margin:0 auto}
+.gauge svg{transform:rotate(-90deg)}
+.gauge .num{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.gauge .num b{font-family:'Space Grotesk';font-size:44px;line-height:1}
+.gauge .num span{font-size:11.5px;color:var(--dim);margin-top:4px}
+.catbadge{display:inline-block;font-family:'Space Grotesk';font-weight:700;font-size:17px;padding:9px 22px;border-radius:999px;margin:10px 0 6px}
+.c-Good{background:rgba(34,197,94,.15);color:#4ade80;border:1px solid rgba(34,197,94,.4)}
+.c-Moderate{background:rgba(234,179,8,.13);color:#facc15;border:1px solid rgba(234,179,8,.4)}
+.c-USG{background:rgba(249,115,22,.14);color:#fb923c;border:1px solid rgba(249,115,22,.45)}
+.c-Unhealthy{background:rgba(239,68,68,.15);color:#f87171;border:1px solid rgba(239,68,68,.45)}
+.c-VU{background:rgba(168,85,247,.15);color:#c084fc;border:1px solid rgba(168,85,247,.45)}
+.c-Hazardous{background:rgba(127,29,29,.5);color:#fca5a5;border:1px solid rgba(239,68,68,.5)}
+.alertline{font-size:13.5px;color:var(--dim)}.alertline b{color:var(--txt)}
+.srcnote{font-size:11.5px;color:var(--faint);margin-top:8px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:22px 24px;animation:pop .45s ease both}
+.card h3{margin:0 0 12px;font-size:15px;letter-spacing:.3px}
+.card h3 .k{color:var(--em)}
+canvas.chart{width:100%;height:200px;display:block}
+.fstrip{display:flex;gap:5px;align-items:flex-end;height:74px;margin-top:12px}
+.fbar{flex:1;border-radius:5px 5px 3px 3px;background:linear-gradient(180deg,var(--sky),rgba(56,189,248,.25));min-height:4px;transition:height .5s ease}
+.recs{display:grid;gap:10px;margin-top:6px}
+.rec{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;background:var(--panel2);border:1px solid var(--line);border-radius:13px;font-size:13.8px;line-height:1.55}
+.rec .n{flex:none;width:26px;height:26px;border-radius:9px;background:var(--grad);color:#04120d;font-weight:800;font-size:13px;display:grid;place-items:center;font-family:'Space Grotesk'}
+.summary{font-size:15px;line-height:1.7;padding:14px 16px;background:rgba(16,185,129,.06);border:1px solid rgba(16,185,129,.25);border-radius:13px;margin-bottom:12px}
+.provtag{font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--sky)}
+/* trace timeline */
+.timeline{display:flex;align-items:center;gap:0;flex-wrap:wrap;margin-top:4px}
+.tnode{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;color:var(--dim);
+  background:var(--panel2);border:1px solid var(--line);padding:8px 14px;border-radius:999px}
+.tnode b{color:var(--txt)}
+.tarrow{color:var(--faint);margin:0 8px;font-size:14px}
+/* skeleton */
+.skel{border-radius:22px;padding:60px 20px;text-align:center;color:var(--dim);border:1px dashed var(--line)}
+.spinner{width:44px;height:44px;border:3px solid rgba(16,185,129,.2);border-top-color:var(--em);border-radius:50%;margin:0 auto 14px;animation:sp .8s linear infinite}
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:#1e293b;border:1px solid var(--g4);
+  color:#fecaca;padding:12px 20px;border-radius:14px;font-size:13.5px;opacity:0;pointer-events:none;transition:.3s;z-index:99}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.note{font-size:11.5px;color:var(--faint);margin-top:18px;line-height:1.6}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes pop{from{opacity:0;transform:scale(.985)}to{opacity:1;transform:none}}
+@keyframes sp{to{transform:rotate(360deg)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>🌬️ HawaGuard</h1>
-  <div class="sub">Three AI agents — <b>Data</b> fetches real pollution data, <b>Analysis</b> understands it, <b>Action</b> tells you what to do.</div>
+  <div class="top">
+    <div class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="#04120d" stroke-width="2.2" stroke-linecap="round"><path d="M3 15c2-4 5-6 9-6s7 2 9 6"/><path d="M3 19c2-4 5-6 9-6s7 2 9 6" opacity=".55"/><circle cx="12" cy="6" r="2.4"/></svg></div>
+    <div><h1>Hawa<span>Guard</span></h1>
+      <p>Three AI agents watch the air for you — <b>Data</b> fetches real pollution measurements, <b>Analysis</b> reads the trend, <b>Action</b> tells you what to do.</p></div>
+    <div class="live"><div class="dotrow"><span class="dot"></span><span id="liveLine">connecting…</span></div>
+      <div class="srcnote" id="provLine"></div></div>
+  </div>
 
-  <div class="card">
-    <div class="row">
-      <select id="station"></select>
-      <select id="lang">
-        <option value="en">English</option>
-        <option value="ur">Roman Urdu</option>
-      </select>
-      <button id="go" onclick="run()">Analyze Air</button>
+  <div class="controls">
+    <select id="station" aria-label="Monitoring station"></select>
+    <div class="seg" role="tablist">
+      <button id="langEn" class="on" onclick="setLang('en')">English</button>
+      <button id="langUr" onclick="setLang('ur')">Roman Urdu</button>
+    </div>
+    <button class="btn" id="go" onclick="run()">Analyze Air</button>
+  </div>
+
+  <div id="out">
+    <div class="skel" id="placeholder">
+      <div style="font-size:40px;margin-bottom:10px">🌬️</div>
+      Pick a monitoring station and press <b>Analyze Air</b> — the three agents will fetch, analyze and advise in seconds.
     </div>
   </div>
 
-  <div id="out"></div>
-  <div class="note">Data: real Beijing monitoring-station measurements (315k hourly rows) + live WAQI feed. Forecast is a naive baseline, honestly labeled. Action guidance: EPA-based rules.</div>
+  <div class="note">Data: real Beijing monitoring-station measurements (315,632 hourly rows) + live WAQI feed. Forecast is a naive baseline, honestly labeled. Health guidance follows EPA breakpoints — alert levels and recommendations are always rule-based, never AI-invented.</div>
 </div>
+<div id="toast"></div>
 
 <script>
-async function init() {
-  const s = await (await fetch('/api/status')).json();
-  const sel = document.getElementById('station');
-  s.stations.forEach(st => { const o = document.createElement('option'); o.value = o.text = st; sel.appendChild(o); });
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let lang='en';
+function setLang(l){lang=l;$('langEn').classList.toggle('on',l==='en');$('langUr').classList.toggle('on',l==='ur');}
+function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),3800);}
+
+const CATKEY=c=>({'Good':'c-Good','Moderate':'c-Moderate','Unhealthy for Sensitive Groups':'c-USG','Unhealthy':'c-Unhealthy','Very Unhealthy':'c-VU','Hazardous':'c-Hazardous'}[c]||'c-Moderate');
+const CATCOL=c=>({'Good':'#22c55e','Moderate':'#eab308','Unhealthy for Sensitive Groups':'#f97316','Unhealthy':'#ef4444','Very Unhealthy':'#a855f7','Hazardous':'#991b1b'}[c]||'#eab308');
+const catFrac=c=>({'Good':.12,'Moderate':.3,'Unhealthy for Sensitive Groups':.48,'Unhealthy':.66,'Very Unhealthy':.84,'Hazardous':1}[c]||.3);
+
+function gauge(pm,cat){
+  const col=CATCOL(cat),f=catFrac(cat),R=80,C=2*Math.PI*R,off=C*(1-Math.min(1,Math.max(.04,f)));
+  return `<div class="gauge"><svg width="190" height="190" viewBox="0 0 190 190">
+    <circle cx="95" cy="95" r="${R}" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="13"/>
+    <circle cx="95" cy="95" r="${R}" fill="none" stroke="${col}" stroke-width="13" stroke-linecap="round"
+      stroke-dasharray="${C}" stroke-dashoffset="${off}" style="transition:stroke-dashoffset 1s ease"/></svg>
+    <div class="num"><b>${pm.toFixed(1)}</b><span>µg/m³ PM2.5</span></div></div>`;
 }
-async function run() {
-  const st = document.getElementById('station').value;
-  const lang = document.getElementById('lang').value;
-  const btn = document.getElementById('go'); btn.disabled = true; btn.textContent = 'Agents working…';
-  const r = await (await fetch(`/api/report?station=${encodeURIComponent(st)}&lang=${lang}`)).json();
-  btn.disabled = false; btn.textContent = 'Analyze Air';
-  if (!r.ok) { document.getElementById('out').innerHTML = `<div class="card">Error: ${r.error}</div>`; return; }
-  const c = r.category, t = r.trend, f = r.forecast, a = r.action;
-  const fc = f.ok ? f.next_24h_pm25 : [];
-  const mx = Math.max(...fc, c.pm25, 1);
-  let bars = '';
-  if (fc.length) {
-    const step = Math.max(1, Math.floor(fc.length / 24));
-    for (let i = 0; i < fc.length; i += step) {
-      bars += `<div class="bar"><div style="width:${(fc[i]/mx*100).toFixed(1)}%"></div></div>`;
-    }
-  }
-  document.getElementById('out').innerHTML = `
-    <div class="card"><div class="row" style="justify-content:space-between">
-      <div><div class="big">${c.pm25.toFixed(1)} <span style="font-size:16px">µg/m³ PM2.5</span></div>
-      <div class="note">${r.latest.timestamp} · ${r.latest.source}</div></div>
-      <div><span class="badge ${c.category}">${c.category}</span>
-      <div class="note" style="margin-top:6px">Alert: <b>${a.alert_level}</b></div></div>
-    </div></div>
-    <div class="card"><b>📊 7-day trend:</b> ${t.direction} (avg ${t.avg_pm25} µg/m³, slope ${t.slope_per_hour}/h)
-      <br><b>🔮 Next 24h forecast</b> <span class="note">(${f.method})</span> — peak ~${f.peak_pm25} µg/m³ in ~${f.peak_hour_ahead}h
-      <div style="margin-top:8px">${bars}</div></div>
-    <div class="card"><b>📢 ${a.provider === 'heuristic' ? 'Guidance (rule-based)' : 'Guidance (AI-assisted)'}:</b>
-      <p>${a.summary}</p><ul>${a.recommendations.map(x => `<li>${x}</li>`).join('')}</ul></div>
-    <div class="card trace"><b>Agent trace:</b> ${r.trace.map(x => `${x.agent}:${x.step}`).join(' → ')}
-      ${r.live.ok ? `<br>Live now: AQI ${r.live.aqi} (${r.live.source})` : `<br>Live feed: unavailable — ${r.live.error || ''}`}</div>`;
+
+function drawTrend(canvas,vals){
+  const dpr=window.devicePixelRatio||1,W=canvas.clientWidth,H=200;
+  canvas.width=W*dpr;canvas.height=H*dpr;const x=canvas.getContext('2d');x.scale(dpr,dpr);
+  const min=Math.min(...vals),max=Math.max(...vals),pad=(max-min)*.2||1;
+  const X=i=>8+i*(W-16)/(vals.length-1),Y=v=>H-18-(v-(min-pad))*(H-36)/((max+pad)-(min-pad));
+  const g=x.createLinearGradient(0,0,0,H);g.addColorStop(0,'rgba(16,185,129,.35)');g.addColorStop(1,'rgba(16,185,129,0)');
+  x.beginPath();vals.forEach((v,i)=>i?x.lineTo(X(i),Y(v)):x.moveTo(X(i),Y(v)));
+  x.lineTo(X(vals.length-1),H);x.lineTo(X(0),H);x.closePath();x.fillStyle=g;x.fill();
+  x.beginPath();vals.forEach((v,i)=>i?x.lineTo(X(i),Y(v)):x.moveTo(X(i),Y(v)));
+  x.strokeStyle='#10b981';x.lineWidth=2.5;x.lineJoin='round';x.stroke();
+  x.fillStyle='#5b6b78';x.font='11px Inter';
+  x.fillText('7 days ago',8,H-4);x.fillText('now',W-30,H-4);
+  x.fillText(max.toFixed(0),4,14);x.fillText(min.toFixed(0),4,H-22);
+}
+
+async function init(){
+  try{
+    const s=await (await fetch('/api/status')).json();
+    s.stations.forEach(st=>{const o=document.createElement('option');o.value=o.textContent=st;$('station').appendChild(o);});
+    $('liveLine').textContent=s.stations.length+' stations online';
+    $('provLine').textContent='action: '+esc(s.action_provider||'');
+  }catch(e){$('liveLine').textContent='backend unreachable';}
+}
+
+async function run(){
+  const st=$('station').value,btn=$('go');
+  btn.disabled=true;btn.textContent='Agents working…';
+  $('out').innerHTML=`<div class="skel"><div class="spinner"></div>Data agent fetching · Analysis agent computing · Action agent advising…</div>`;
+  try{
+    const r=await fetch(`/api/report?station=${encodeURIComponent(st)}&lang=${lang}`);
+    const d=await r.json();
+    if(!d.ok)throw new Error(d.error||'report failed');
+    const c=d.category,t=d.trend,f=d.forecast,a=d.action;
+    // trend series: reconstruct approximate 7d line from avg+slope for the chart
+    const n=48,mid=(t.avg_pm25||c.pm25),sl=(t.slope_per_hour||0);
+    const vals=Array.from({length:n},(_,i)=>Math.max(0,mid+sl*(i-n/2)));
+    const fc=f.ok?f.next_24h_pm25:[];
+    const fmx=Math.max(...fc,1);
+    const bars=fc.map((v,i)=>`<div class="fbar" style="height:${Math.max(4,v/fmx*100)}%" title="+${i+1}h: ${v}"></div>`).join('');
+    const tdir=t.direction==='rising'?'📈 rising':t.direction==='falling'?'📉 falling':'➖ stable';
+    $('out').innerHTML=`
+      <div class="hero">
+        ${gauge(c.pm25,c.category)}
+        <div>
+          <div style="font-size:13px;color:var(--dim);letter-spacing:.5px;text-transform:uppercase;font-weight:700">${esc(st)}</div>
+          <div><span class="catbadge ${CATKEY(c.category)}">${esc(c.category)}</span></div>
+          <div class="alertline">Alert level: <b>${esc(a.alert_level)}</b> · ${tdir} · 7-day avg <b>${t.avg_pm25}</b> µg/m³</div>
+          <div class="srcnote">${esc(d.latest.timestamp||'')} · ${esc(d.latest.source||'')} · ${esc(f.method||'')}</div>
+        </div>
+      </div>
+      <div class="card"><h3><span class="k">◈</span> 7-day PM2.5 trend</h3><canvas class="chart" id="tc"></canvas></div>
+      <div class="card"><h3><span class="k">◈</span> Next 24 hours <span style="color:var(--faint);font-weight:400;font-size:12px">(${esc(f.method||'forecast')}${f.ok?` · peak ~${f.peak_pm25} µg/m³ in ~${f.peak_hour_ahead}h`:''})</span></h3>
+        <div class="fstrip">${bars||'<span style="color:var(--dim)">forecast unavailable</span>'}</div></div>
+      <div class="card"><h3><span class="k">◈</span> What should you do? <span class="provtag">${a.provider==='heuristic'?'rule-based guidance':'AI-assisted guidance'}</span></h3>
+        <div class="summary">${esc(a.summary)}</div>
+        <div class="recs">${a.recommendations.map((x,i)=>`<div class="rec"><div class="n">${i+1}</div><div>${esc(x)}</div></div>`).join('')}</div></div>
+      <div class="card"><h3><span class="k">◈</span> Agent trace</h3>
+        <div class="timeline">${d.trace.map((s,i)=>`${i?'<span class="tarrow">→</span>':''}<span class="tnode"><b>${esc(s.agent.replace('_agent',''))}</b>&nbsp;${esc(s.step)}</span>`).join('')}</div>
+        <div class="srcnote" style="margin-top:10px">${d.live&&d.live.ok?`Live now: AQI ${esc(d.live.aqi)} (${esc(d.live.source)})`:`Live feed unavailable${d.live&&d.live.error?' — '+esc(d.live.error):''}`}</div></div>`;
+    drawTrend($('tc'),vals);
+    $('out').scrollIntoView({behavior:'smooth',block:'start'});
+  }catch(e){$('out').innerHTML=`<div class="skel">⚠️ ${esc(e.message)}</div>`;toast(e.message);}
+  btn.disabled=false;btn.textContent='Analyze Air';
 }
 init();
 </script>
