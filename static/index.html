@@ -95,6 +95,63 @@ canvas.chart{width:100%;height:200px;display:block}
 .kvals{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;text-align:left}
 .kval{background:var(--panel2);border:1px solid var(--line);border-radius:11px;padding:10px 12px;font-size:12.5px;color:var(--dim)}
 .kval b{display:block;color:var(--txt);font-size:15px;font-family:'Space Grotesk';margin-top:2px}
+/* station labels + data honesty note (bug fixes) */
+.fld{display:flex;flex-direction:column;gap:6px}
+.fld label{font-size:11.5px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--faint)}
+.datanote{font-size:12px;color:var(--dim);background:rgba(56,189,248,.07);border:1px solid rgba(56,189,248,.25);
+  padding:9px 14px;border-radius:11px;display:flex;align-items:center;gap:8px}
+/* new-feature bar */
+.featbar{margin-top:12px;padding:16px 22px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;
+  background:var(--panel);border:1px dashed rgba(16,185,129,.35);border-radius:var(--r);animation:rise .6s .12s ease both}
+.featbar .newtag{font-size:11px;font-weight:800;letter-spacing:1px;color:#04120d;background:var(--grad);
+  padding:5px 12px;border-radius:999px}
+.fbtn{background:var(--panel2);border:1px solid var(--line);color:var(--txt);font-family:inherit;font-weight:700;
+  font-size:13.5px;padding:11px 18px;border-radius:12px;cursor:pointer;transition:.2s}
+.fbtn:hover{border-color:var(--em);transform:translateY(-1px);box-shadow:0 6px 20px rgba(16,185,129,.18)}
+.fbtn:disabled{opacity:.55;cursor:wait;transform:none}
+/* outdoor planner */
+.planstrip{display:grid;grid-template-columns:repeat(24,1fr);gap:4px;margin:14px 0 6px}
+@media(max-width:640px){.planstrip{grid-template-columns:repeat(12,1fr)}}
+.pblock{border-radius:7px;min-height:52px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;
+  padding:6px 2px;font-size:10px;color:#04120d;font-weight:700;transition:transform .15s}
+.pblock:hover{transform:scaleY(1.08)}
+.pblock small{font-weight:600;opacity:.75}
+.pb-go{background:linear-gradient(180deg,#4ade80,#22c55e)}
+.pb-caution{background:linear-gradient(180deg,#fbbf24,#f59e0b)}
+.pb-avoid{background:linear-gradient(180deg,#f87171,#dc2626);color:#fff}
+.planleg{display:flex;gap:14px;font-size:12px;color:var(--dim);margin-top:8px;flex-wrap:wrap}
+.planleg i{display:inline-block;width:11px;height:11px;border-radius:4px;margin-right:5px;vertical-align:-1px}
+.winbanner{display:flex;gap:12px;align-items:center;margin-top:14px;padding:13px 16px;border-radius:13px;
+  background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.35);font-size:14px;line-height:1.55}
+/* symptom quiz */
+.quiz{display:grid;gap:10px;margin:6px 0 14px}
+.qrow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;
+  background:var(--panel2);border:1px solid var(--line);border-radius:13px;font-size:14px}
+.yn{display:flex;gap:8px;flex:none}
+.yn button{border:1px solid var(--line);background:transparent;color:var(--dim);font-family:inherit;font-weight:700;
+  font-size:13px;padding:9px 20px;border-radius:10px;cursor:pointer;transition:.15s}
+.yn button.yes.on{background:rgba(239,68,68,.2);border-color:#ef4444;color:#fca5a5}
+.yn button.no.on{background:rgba(34,197,94,.2);border-color:#22c55e;color:#86efac}
+.verdict{padding:22px;border-radius:16px;margin-top:6px;animation:pop .45s ease both;text-align:center}
+.v-pollution{background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.5)}
+.v-infection{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.5)}
+.v-unclear{background:rgba(56,189,248,.08);border:1px solid rgba(56,189,248,.4)}
+.verdict h2{margin:0 0 8px;font-size:20px}
+.verdict p{margin:0 auto 10px;max-width:560px;font-size:14px;line-height:1.65;color:var(--dim)}
+.disclaimer{margin-top:12px;font-size:12.5px;line-height:1.6;color:var(--faint);border-top:1px dashed var(--line);padding-top:12px}
+/* family shield */
+.fambig{text-align:center;padding:8px 0 4px}
+.fambig .emo{font-size:52px}
+.fambig h2{margin:10px 0 6px;font-size:23px}
+.fambig .sch{font-size:14px;color:var(--dim)}
+.tiplist{display:grid;gap:10px;margin-top:14px}
+.tip{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;background:var(--panel2);
+  border:1px solid var(--line);border-radius:13px;font-size:13.8px;line-height:1.55}
+.tip .n{flex:none;width:26px;height:26px;border-radius:9px;background:linear-gradient(135deg,#38bdf8,#a855f7);
+  color:#04120d;font-weight:800;font-size:13px;display:grid;place-items:center;font-family:'Space Grotesk'}
+.copybtn{margin-top:12px;background:transparent;border:1px solid var(--line);color:var(--dim);font-family:inherit;
+  font-weight:700;font-size:13px;padding:10px 18px;border-radius:11px;cursor:pointer;transition:.2s}
+.copybtn:hover{border-color:var(--sky);color:var(--txt)}
 /* skeleton */
 .skel{border-radius:22px;padding:60px 20px;text-align:center;color:var(--dim);border:1px dashed var(--line)}
 .spinner{width:44px;height:44px;border:3px solid rgba(16,185,129,.2);border-top-color:var(--em);border-radius:50%;margin:0 auto 14px;animation:sp .8s linear infinite}
@@ -124,18 +181,29 @@ canvas.chart{width:100%;height:200px;display:block}
       <button id="modeCompare" onclick="setMode('compare')">⚖️ Compare</button>
     </div>
     <div class="bar" id="singleBar">
-      <select id="station" aria-label="Monitoring station"></select>
+      <div class="fld"><label for="station">Station</label>
+      <select id="station" aria-label="Monitoring station"></select></div>
       <button class="btn" id="go" onclick="run()">Analyze Air</button>
     </div>
     <div class="bar" id="compareBar" style="display:none">
-      <select id="stationA" aria-label="First station"></select>
-      <select id="stationB" aria-label="Second station"></select>
+      <div class="fld"><label for="stationA">Station A</label>
+      <select id="stationA" aria-label="First station"></select></div>
+      <div class="fld"><label for="stationB">Station B</label>
+      <select id="stationB" aria-label="Second station"></select></div>
       <button class="btn" id="compareGo" onclick="runCompare()">⚖️ Compare</button>
     </div>
     <div class="seg" role="tablist">
       <button id="langEn" class="on" onclick="setLang('en')">English</button>
       <button id="langUr" onclick="setLang('ur')">Roman Urdu</button>
     </div>
+  </div>
+  <div class="datanote" style="margin-top:12px">📍 <span>Historical <b>Beijing</b> monitoring data (Feb 2016 archive) — 12 stations. Explore how the agents work here; any city's feed plugs into the same pipeline.</span></div>
+
+  <div class="featbar">
+    <span class="newtag">NEW</span>
+    <button class="fbtn" id="planBtn" onclick="runPlanner()">🏃 Outdoor Planner</button>
+    <button class="fbtn" id="symBtn" onclick="showQuiz()">🩺 Symptom Checker</button>
+    <button class="fbtn" id="famBtn" onclick="runFamily()">👨‍👩‍👧 Family Shield</button>
   </div>
 
   <div id="out">
@@ -153,7 +221,30 @@ canvas.chart{width:100%;height:200px;display:block}
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 let lang='en', mode='single';
-function setLang(l){lang=l;$('langEn').classList.toggle('on',l==='en');$('langUr').classList.toggle('on',l==='ur');}
+let lastReport=null, lastPlanner=null, lastFamily=null, lastSymptom=null;
+const quizAns={dry_cough:0,fever:0,worse_outdoors:0,burning_eyes:0,chest_tightness:0,cold_contact:0};
+const STR={
+  en:{what:'What should you do?',analyze:'Analyze Air',compare:'⚖️ Compare',working:'Agents working…',
+      planner:'🏃 Outdoor Planner',family:'👨‍👩‍👧 Family Shield',bestWin:'Best exercise window',leastBad:'Least-bad window',
+      planTitle:'Outdoor Planner — next 24 hours',planSub:'Green = go · Yellow = caution · Red = stay indoors',
+      quizTitle:'Symptom Checker — pollution or infection?',quizSub:'Answer honestly. Rule-based only — not a diagnosis.',
+      checkBtn:'🔍 Check my symptoms',famTitle:'Family Shield — school-day verdict'},
+  ur:{what:'Kya karna chahiye?',analyze:'Analyze Air',compare:'⚖️ Compare',working:'Agents working…',
+      planner:'🏃 Outdoor Planner',family:'👨‍👩‍👧 Family Shield',bestWin:'Exercise ka behtareen waqt',leastBad:'Sab se kam kharab waqt',
+      planTitle:'Outdoor Planner — aglay 24 ghantay',planSub:'Sabz = jao · Peela = ehtiyat · Laal = andar raho',
+      quizTitle:'Symptom Checker — smog ya infection?',quizSub:'Imandari se jawab den. Sirf rule-based — diagnosis nahi.',
+      checkBtn:'🔍 Meri alamat check karo',famTitle:'Family Shield — school-day faisla'}
+};
+function setLang(l){
+  lang=l;
+  $('langEn').classList.toggle('on',l==='en');$('langUr').classList.toggle('on',l==='ur');
+  // Re-render existing results in the new language WITHOUT re-running analysis (bug fix).
+  if(lastReport&&mode==='single')renderReport(lastReport);
+  if(lastPlanner)renderPlanner(lastPlanner);
+  if(lastFamily)renderFamily(lastFamily);
+  if($('quizBox'))renderQuiz();
+  if(lastSymptom)renderSymptomResult(lastSymptom);
+}
 function setMode(m){
   mode=m;
   $('modeSingle').classList.toggle('on',m==='single');
@@ -206,45 +297,54 @@ async function init(){
   }catch(e){$('liveLine').textContent='backend unreachable';}
 }
 
+function renderReport(d){
+  const st=d.station,c=d.category,t=d.trend,f=d.forecast,a=d.action;
+  // trend series: reconstruct approximate 7d line from avg+slope for the chart
+  const n=48,mid=(t.avg_pm25||c.pm25),sl=(t.slope_per_hour||0);
+  const vals=Array.from({length:n},(_,i)=>Math.max(0,mid+sl*(i-n/2)));
+  const fc=f.ok?f.next_24h_pm25:[];
+  const fmx=Math.max(...fc,1);
+  const bars=fc.map((v,i)=>`<div class="fbar" style="height:${Math.max(4,v/fmx*100)}%" title="+${i+1}h: ${v}"></div>`).join('');
+  const tdir=t.direction==='rising'?'📈 rising':t.direction==='falling'?'📉 falling':'➖ stable';
+  // Language-aware: use the pre-computed i18n bundles so toggling re-renders instantly (bug fix).
+  const recs=(a.recommendations_i18n&&a.recommendations_i18n[lang])||a.recommendations;
+  const summ=(a.summary_i18n&&a.summary_i18n[lang])||a.summary;
+  $('out').innerHTML=`
+    <div class="hero">
+      ${gauge(c.pm25,c.category)}
+      <div>
+        <div style="font-size:13px;color:var(--dim);letter-spacing:.5px;text-transform:uppercase;font-weight:700">${esc(st)}</div>
+        <div><span class="catbadge ${CATKEY(c.category)}">${esc(c.category)}</span></div>
+        <div class="alertline">Alert level: <b>${esc(a.alert_level)}</b> · ${tdir} · 7-day avg <b>${t.avg_pm25}</b> µg/m³</div>
+        <div class="srcnote">${esc(d.latest.timestamp||'')} · ${esc(d.latest.source||'')} · ${esc(f.method||'')}</div>
+      </div>
+    </div>
+    <div class="card"><h3><span class="k">◈</span> 7-day PM2.5 trend</h3><canvas class="chart" id="tc"></canvas></div>
+    <div class="card"><h3><span class="k">◈</span> Next 24 hours <span style="color:var(--faint);font-weight:400;font-size:12px">(${esc(f.method||'forecast')}${f.ok?` · peak ~${f.peak_pm25} µg/m³ in ~${f.peak_hour_ahead}h`:''})</span></h3>
+      <div class="fstrip">${bars||'<span style="color:var(--dim)">forecast unavailable</span>'}</div></div>
+    <div class="card"><h3><span class="k">◈</span> ${STR[lang].what} <span class="provtag">${a.provider==='heuristic'?'rule-based guidance':'AI-assisted guidance'}</span></h3>
+      <div class="summary">${esc(summ)}</div>
+      <div class="recs">${recs.map((x,i)=>`<div class="rec"><div class="n">${i+1}</div><div>${esc(x)}</div></div>`).join('')}</div></div>
+    <div class="card"><h3><span class="k">◈</span> Agent trace</h3>
+      <div class="timeline">${d.trace.map((s,i)=>`${i?'<span class="tarrow">→</span>':''}<span class="tnode"><b>${esc(s.agent.replace('_agent',''))}</b>&nbsp;${esc(s.step)}</span>`).join('')}</div>
+      <div class="srcnote" style="margin-top:10px">${d.live&&d.live.ok?`Live now: AQI ${esc(d.live.aqi)} (${esc(d.live.source)})`:`Live feed unavailable${d.live&&d.live.error?' — '+esc(d.live.error):''}`}</div></div>`;
+  drawTrend($('tc'),vals);
+  $('out').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
 async function run(){
   const st=$('station').value,btn=$('go');
-  btn.disabled=true;btn.textContent='Agents working…';
+  btn.disabled=true;btn.textContent=STR[lang].working;
+  lastReport=null;
   $('out').innerHTML=`<div class="skel"><div class="spinner"></div>Data agent fetching · Analysis agent computing · Action agent advising…</div>`;
   try{
     const r=await fetch(`/api/report?station=${encodeURIComponent(st)}&lang=${lang}`);
     const d=await r.json();
     if(!d.ok)throw new Error(d.error||'report failed');
-    const c=d.category,t=d.trend,f=d.forecast,a=d.action;
-    // trend series: reconstruct approximate 7d line from avg+slope for the chart
-    const n=48,mid=(t.avg_pm25||c.pm25),sl=(t.slope_per_hour||0);
-    const vals=Array.from({length:n},(_,i)=>Math.max(0,mid+sl*(i-n/2)));
-    const fc=f.ok?f.next_24h_pm25:[];
-    const fmx=Math.max(...fc,1);
-    const bars=fc.map((v,i)=>`<div class="fbar" style="height:${Math.max(4,v/fmx*100)}%" title="+${i+1}h: ${v}"></div>`).join('');
-    const tdir=t.direction==='rising'?'📈 rising':t.direction==='falling'?'📉 falling':'➖ stable';
-    $('out').innerHTML=`
-      <div class="hero">
-        ${gauge(c.pm25,c.category)}
-        <div>
-          <div style="font-size:13px;color:var(--dim);letter-spacing:.5px;text-transform:uppercase;font-weight:700">${esc(st)}</div>
-          <div><span class="catbadge ${CATKEY(c.category)}">${esc(c.category)}</span></div>
-          <div class="alertline">Alert level: <b>${esc(a.alert_level)}</b> · ${tdir} · 7-day avg <b>${t.avg_pm25}</b> µg/m³</div>
-          <div class="srcnote">${esc(d.latest.timestamp||'')} · ${esc(d.latest.source||'')} · ${esc(f.method||'')}</div>
-        </div>
-      </div>
-      <div class="card"><h3><span class="k">◈</span> 7-day PM2.5 trend</h3><canvas class="chart" id="tc"></canvas></div>
-      <div class="card"><h3><span class="k">◈</span> Next 24 hours <span style="color:var(--faint);font-weight:400;font-size:12px">(${esc(f.method||'forecast')}${f.ok?` · peak ~${f.peak_pm25} µg/m³ in ~${f.peak_hour_ahead}h`:''})</span></h3>
-        <div class="fstrip">${bars||'<span style="color:var(--dim)">forecast unavailable</span>'}</div></div>
-      <div class="card"><h3><span class="k">◈</span> What should you do? <span class="provtag">${a.provider==='heuristic'?'rule-based guidance':'AI-assisted guidance'}</span></h3>
-        <div class="summary">${esc(a.summary)}</div>
-        <div class="recs">${a.recommendations.map((x,i)=>`<div class="rec"><div class="n">${i+1}</div><div>${esc(x)}</div></div>`).join('')}</div></div>
-      <div class="card"><h3><span class="k">◈</span> Agent trace</h3>
-        <div class="timeline">${d.trace.map((s,i)=>`${i?'<span class="tarrow">→</span>':''}<span class="tnode"><b>${esc(s.agent.replace('_agent',''))}</b>&nbsp;${esc(s.step)}</span>`).join('')}</div>
-        <div class="srcnote" style="margin-top:10px">${d.live&&d.live.ok?`Live now: AQI ${esc(d.live.aqi)} (${esc(d.live.source)})`:`Live feed unavailable${d.live&&d.live.error?' — '+esc(d.live.error):''}`}</div></div>`;
-    drawTrend($('tc'),vals);
-    $('out').scrollIntoView({behavior:'smooth',block:'start'});
+    lastReport=d;
+    renderReport(d);
   }catch(e){$('out').innerHTML=`<div class="skel">⚠️ ${esc(e.message)}</div>`;toast(e.message);}
-  btn.disabled=false;btn.textContent='Analyze Air';
+  btn.disabled=false;btn.textContent=STR[lang].analyze;
 }
 
 const TDIR=t=>t.direction==='rising'?'📈 rising':t.direction==='falling'?'📉 falling':'➖ stable';
@@ -267,7 +367,7 @@ function cmpCard(rep,tag,winner){
       <div class="kval">Trend<b>${TDIR(t.direction)}</b></div>
       <div class="kval">Alert level<b>${esc(a.alert_level)}</b></div>
       ${fline}
-      <div class="kval">Source<b style="font-size:12px">${esc(rep.latest.source||'—').slice(0,26)}</b></div>
+      <div class="kval">Source<b style="font-size:12px;word-break:break-word">${esc(rep.latest.source||'—')}</b></div>
     </div>
     <div class="srcnote">${esc(rep.latest.timestamp||'')}</div>
   </div>`;
@@ -293,6 +393,131 @@ async function runCompare(){
   }catch(e){$('out').innerHTML=`<div class="skel">⚠️ ${esc(e.message)}</div>`;toast(e.message);}
   btn.disabled=false;btn.textContent='⚖️ Compare';
 }
+/* ============ NEW FEATURES ============ */
+
+// 🏃 Outdoor Planner
+function renderPlanner(d){
+  const blocks=d.hours.map(h=>{
+    const lbl=h.hour_ahead<=12?`+${h.hour_ahead}h`:`+${h.hour_ahead}h`;
+    return `<div class="pblock pb-${h.band}" title="+${h.hour_ahead}h · ${h.pm25} µg/m³ · ${esc(h.category)}"><small>${lbl}</small>${Math.round(h.pm25)}</div>`;
+  }).join('');
+  const w=d.best_window;
+  const winLabel=w.band==='go'||w.band==='caution'?STR[lang].bestWin:STR[lang].leastBad;
+  const winRange=w.start_hour_ahead===w.end_hour_ahead?`+${w.start_hour_ahead}h`:`+${w.start_hour_ahead}h → +${w.end_hour_ahead}h`;
+  const leg={en:['Go — safe to exercise','Caution — light activity','Avoid — stay indoors'],
+             ur:['Jao — exercise safe','Ehtiyat — halki sargarmi','Avoid — andar raho']}[lang];
+  $('out').innerHTML=`
+    <div class="card"><h3><span class="k">◈</span> ${STR[lang].planTitle}
+      <span style="color:var(--faint);font-weight:400;font-size:12px"> · ${esc(d.station)} · ${esc(d.method||'')}</span></h3>
+      <div class="planstrip">${blocks}</div>
+      <div class="planleg"><span><i style="background:#22c55e"></i>${leg[0]}</span>
+        <span><i style="background:#f59e0b"></i>${leg[1]}</span>
+        <span><i style="background:#dc2626"></i>${leg[2]}</span></div>
+      <div class="winbanner">🏅 <div><b>${winLabel}: ${winRange}</b><br>
+        <span style="color:var(--dim);font-size:13px">${esc(d.band_advice[w.band])}</span></div></div>
+      <div class="srcnote" style="margin-top:12px">${STR[lang].planSub}</div>
+    </div>`;
+  $('out').scrollIntoView({behavior:'smooth',block:'start'});
+}
+async function runPlanner(){
+  const st=$('station').value,btn=$('planBtn');
+  btn.disabled=true;
+  lastPlanner=null;
+  $('out').innerHTML=`<div class="skel"><div class="spinner"></div>${lang==='ur'?'24 ghanton ka plan ban raha hai…':'Planning your next 24 hours…'}</div>`;
+  try{
+    const r=await fetch(`/api/outdoor-planner?station=${encodeURIComponent(st)}&lang=${lang}`);
+    const d=await r.json();
+    if(!r.ok||!d.ok)throw new Error(d.error||'planner failed');
+    lastPlanner=d;renderPlanner(d);
+  }catch(e){$('out').innerHTML=`<div class="skel">⚠️ ${esc(e.message)}</div>`;toast(e.message);}
+  btn.disabled=false;
+}
+
+// 🩺 Symptom Checker
+const QUIZ_Q=[
+  ['dry_cough','Dry cough?','Sookhi khansi?'],
+  ['fever','Fever?','Bukhar?'],
+  ['worse_outdoors','Worse outdoors, better indoors?','Bahar zyada, andar kam?'],
+  ['burning_eyes','Burning or watery eyes?','Aankhon me jalan ya pani?'],
+  ['chest_tightness','Chest tightness or wheezing?','Seenay me jakran ya seeti?'],
+  ['cold_contact','Around sick people / had a cold recently?','Haali me bukhar-zukam walon se rabta?'],
+];
+function renderQuiz(){
+  const rows=QUIZ_Q.map(([k,enq,urq])=>{
+    const q=lang==='ur'?urq:enq, v=quizAns[k];
+    return `<div class="qrow"><div>${esc(q)}</div>
+      <div class="yn"><button class="yes ${v===1?'on':''}" onclick="quizSet('${k}',1)">${lang==='ur'?'Haan':'Yes'}</button>
+      <button class="no ${v===0?'on':''}" onclick="quizSet('${k}',0)">${lang==='ur'?'Nahi':'No'}</button></div></div>`;
+  }).join('');
+  const res=lastSymptom?`<div id="symRes"></div>`:'';
+  $('out').innerHTML=`
+    <div class="card" id="quizBox"><h3><span class="k">◈</span> ${STR[lang].quizTitle}</h3>
+      <div style="color:var(--dim);font-size:13px;margin-bottom:12px">${STR[lang].quizSub}</div>
+      <div class="quiz">${rows}</div>
+      <button class="btn" onclick="submitQuiz()">${STR[lang].checkBtn}</button>
+      ${res}</div>`;
+  if(lastSymptom)renderSymptomResult(lastSymptom);
+  $('out').scrollIntoView({behavior:'smooth',block:'start'});
+}
+function quizSet(k,v){quizAns[k]=v;renderQuiz();}
+function showQuiz(){lastSymptom=null;renderQuiz();}
+function renderSymptomResult(d){
+  const box=$('symRes');if(!box)return;
+  box.innerHTML=`<div class="verdict v-${d.verdict}">
+      <h2>${esc(d.title)}</h2>
+      <p>${esc(d.reasoning)}</p>
+      ${d.context?`<p style="font-size:12.5px">${esc(d.context)}</p>`:''}
+      <div class="disclaimer">${esc(d.disclaimer)}</div></div>`;
+  box.scrollIntoView({behavior:'smooth',block:'center'});
+}
+async function submitQuiz(){
+  const btn=event.target;btn.disabled=true;
+  const q=new URLSearchParams({...quizAns,lang,station:$('station').value});
+  try{
+    const r=await fetch(`/api/symptom-check?${q}`);
+    const d=await r.json();
+    if(!r.ok||!d.ok)throw new Error(d.error||'check failed');
+    lastSymptom=d;renderSymptomResult(d);
+  }catch(e){toast(e.message);}
+  btn.disabled=false;
+}
+
+// 👨‍👩‍👧 Family Shield
+function copySummary(el){
+  navigator.clipboard.writeText(decodeURIComponent(el.dataset.sum))
+    .then(()=>toast('✓ '+(lang==='ur'?'Summary copy ho gaya':'Summary copied')));
+}
+function renderFamily(d){
+  const tips=d.kid_tips.map((t,i)=>`<div class="tip"><div class="n">${i+1}</div><div>${esc(t)}</div></div>`).join('');
+  const sumTxt=`${d.title} — ${d.school_advice} (${d.station}, PM2.5 ${d.pm25}, ${d.category})`;
+  $('out').innerHTML=`
+    <div class="card"><h3><span class="k">◈</span> ${STR[lang].famTitle}
+      <span style="color:var(--faint);font-weight:400;font-size:12px"> · ${esc(d.station)} · PM2.5 ${d.pm25} µg/m³</span></h3>
+      <div class="fambig"><div class="emo">${d.verdict==='go'?'🟢':d.verdict==='caution'?'🟡':d.verdict==='mask'?'😷':d.verdict==='indoors'?'🏠':'🚨'}</div>
+        <h2>${esc(d.title)}</h2>
+        <div class="sch">🏫 ${esc(d.school_advice)}</div></div>
+      <div class="tiplist">${tips}</div>
+      <button class="copybtn" data-sum="${encodeURIComponent(sumTxt)}" onclick="copySummary(this)">📋 ${lang==='ur'?'Summary copy karo':'Copy shareable summary'}</button>
+      <div class="srcnote" style="margin-top:12px">${lang==='ur'
+        ?'Bachon ke liye sakht mayar — baligh guidance se ek darja zyada ehtiyat.'
+        :'Stricter thresholds for children — one band harsher than adult guidance.'}</div>
+    </div>`;
+  $('out').scrollIntoView({behavior:'smooth',block:'start'});
+}
+async function runFamily(){
+  const st=$('station').value,btn=$('famBtn');
+  btn.disabled=true;
+  lastFamily=null;
+  $('out').innerHTML=`<div class="skel"><div class="spinner"></div>${lang==='ur'?'Bachon ke liye faisla tayar ho raha hai…':'Preparing your family verdict…'}</div>`;
+  try{
+    const r=await fetch(`/api/family-shield?station=${encodeURIComponent(st)}&lang=${lang}`);
+    const d=await r.json();
+    if(!r.ok||!d.ok)throw new Error(d.error||'family shield failed');
+    lastFamily=d;renderFamily(d);
+  }catch(e){$('out').innerHTML=`<div class="skel">⚠️ ${esc(e.message)}</div>`;toast(e.message);}
+  btn.disabled=false;
+}
+
 init();
 </script>
 </body>
