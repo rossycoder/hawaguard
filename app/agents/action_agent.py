@@ -61,6 +61,35 @@ URDU_INTRO = {
     "Hazardous": "Emergency hai — ghar ke andar rahen!",
 }
 
+# Roman Urdu translations of RECOMMENDATIONS — rule-based, same safety guarantee.
+# Bug fix: previously only the intro sentence was Roman Urdu; recommendations stayed English.
+RECOMMENDATIONS_UR = {
+    "Good": ["Bahar ki sargarmiyan aaram se enjoy karo."],
+    "Moderate": [
+        "Sensitive log: bahar workout thora chhota rakhen.",
+        "Baaki sab: koi tabdeeli ki zaroorat nahi.",
+    ],
+    "Unhealthy for Sensitive Groups": [
+        "Bachay, buzurg aur asthma/dil ke mareez: bahar zyada dair ki mehnat se parhez karen.",
+        "Peak hours me khirkiyan band rakhen; agar air purifier hai to chalain.",
+    ],
+    "Unhealthy": [
+        "Sab log: bahar lambi sargarmi kam karen.",
+        "Bahar jana ho to achi tarah fit mask (N95/KN95) pehnen.",
+        "Schools: khel indoor karwain.",
+    ],
+    "Very Unhealthy": [
+        "Bahar ki tamam mehnat se bachen.",
+        "Khirkiyan/darwazay band rakhen; air purifier use karen.",
+        "Buzurg parosiyon aur bachon ka haal poochte rahen.",
+    ],
+    "Hazardous": [
+        "Ghar ke andar rahen. Ye emergency level hai.",
+        "Bahar bilkul exercise na karen.",
+        "Agar saans phoolay ya chakkar aye to fori medical madad len.",
+    ],
+}
+
 
 class ActionAgent:
     name = "action_agent"
@@ -100,13 +129,22 @@ class ActionAgent:
 
     def act(self, category_label, trend, forecast, lang="en"):
         alert = ALERT_LEVEL.get(category_label, "watch")
-        recs = RECOMMENDATIONS.get(category_label, [])  # always rule-based (safety)
+        # Rule-based recommendations in BOTH languages — the frontend picks by
+        # current lang and can re-render on language toggle without re-running.
+        recs_en = RECOMMENDATIONS.get(category_label, [])
+        recs_ur = RECOMMENDATIONS_UR.get(category_label, recs_en)
+        recs = recs_ur if lang == "ur" else recs_en
         provider = "heuristic"
         summary = self._heuristic_summary(category_label, trend, forecast, lang)
+        sum_en = self._heuristic_summary(category_label, trend, forecast, "en")
+        sum_ur = self._heuristic_summary(category_label, trend, forecast, "ur")
         if free_llm.available_provider():
             llm_text, label = self._llm_summary(category_label, trend, forecast, lang)
             if llm_text:
                 summary, provider = llm_text, label
+        summary_i18n = {"en": sum_en, "ur": sum_ur}
+        if provider != "heuristic":
+            summary_i18n[lang] = summary  # real AI text in the requested language
         return {
             "provider": provider,
             "provider_note": (
@@ -116,6 +154,8 @@ class ActionAgent:
             ),
             "alert_level": alert,
             "recommendations": recs,
+            "recommendations_i18n": {"en": recs_en, "ur": recs_ur},
             "summary": summary,
+            "summary_i18n": summary_i18n,
             "lang": lang,
         }
