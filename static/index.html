@@ -34,6 +34,11 @@ h1,h2,h3,.sg{font-family:'Space Grotesk',sans-serif}
 .live{margin-left:auto;text-align:right;flex:none}
 .live .dotrow{display:flex;align-items:center;gap:8px;justify-content:flex-end;font-size:12.5px;color:var(--dim)}
 .dot{width:8px;height:8px;border-radius:50%;background:var(--em);box-shadow:0 0 10px var(--em);animation:pulse 2s infinite}
+.dot.warn{background:var(--g2);box-shadow:0 0 10px var(--g2);animation:none}
+.dot.bad{background:var(--g4);box-shadow:0 0 10px var(--g4);animation:none}
+.retrybtn{margin-top:6px;background:var(--panel2);border:1px solid var(--line);color:var(--txt);font-family:inherit;
+  font-weight:700;font-size:12px;padding:7px 14px;border-radius:10px;cursor:pointer}
+.retrybtn:hover{border-color:var(--em)}
 /* controls */
 .controls{margin-top:16px;padding:18px 22px;display:flex;gap:12px;flex-wrap:wrap;align-items:center;
   background:var(--panel);border:1px solid var(--line);border-radius:var(--r);animation:rise .6s .08s ease both}
@@ -171,8 +176,10 @@ canvas.chart{width:100%;height:200px;display:block}
     <div class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="#04120d" stroke-width="2.2" stroke-linecap="round"><path d="M3 15c2-4 5-6 9-6s7 2 9 6"/><path d="M3 19c2-4 5-6 9-6s7 2 9 6" opacity=".55"/><circle cx="12" cy="6" r="2.4"/></svg></div>
     <div><h1>Hawa<span>Guard</span></h1>
       <p>Three AI agents watch the air for you — <b>Data</b> fetches real pollution measurements, <b>Analysis</b> reads the trend, <b>Action</b> tells you what to do.</p></div>
-    <div class="live"><div class="dotrow"><span class="dot"></span><span id="liveLine">connecting…</span></div>
-      <div class="srcnote" id="provLine"></div></div>
+    <div class="live"><div class="dotrow"><span class="dot" id="connDot"></span><span id="liveLine">connecting…</span></div>
+      <div class="srcnote" id="provLine"></div>
+      <div class="srcnote" id="liveFeed"></div>
+      <button class="retrybtn" id="retryBtn" style="display:none" onclick="retryInit()">↻ Retry</button></div>
   </div>
 
   <div class="controls">
@@ -228,12 +235,20 @@ const STR={
       planner:'🏃 Outdoor Planner',family:'👨‍👩‍👧 Family Shield',bestWin:'Best exercise window',leastBad:'Least-bad window',
       planTitle:'Outdoor Planner — next 24 hours',planSub:'Green = go · Yellow = caution · Red = stay indoors',
       quizTitle:'Symptom Checker — pollution or infection?',quizSub:'Answer honestly. Rule-based only — not a diagnosis.',
-      checkBtn:'🔍 Check my symptoms',famTitle:'Family Shield — school-day verdict'},
+      checkBtn:'🔍 Check my symptoms',famTitle:'Family Shield — school-day verdict',
+      connecting:'connecting…',timeout:'The request timed out — the server took too long to answer.',
+      backendUnreach:'Could not reach the backend. Check your connection and retry.',retry:'↻ Retry',
+      liveOk:'live WAQI feed OK',liveDown:'live feed unavailable — results use the labeled Beijing historical archive (Feb 2016)',
+      srcHistorical:'Historical archive (Feb 2016) — not live data'},
   ur:{what:'Kya karna chahiye?',analyze:'Analyze Air',compare:'⚖️ Compare',working:'Agents working…',
       planner:'🏃 Outdoor Planner',family:'👨‍👩‍👧 Family Shield',bestWin:'Exercise ka behtareen waqt',leastBad:'Sab se kam kharab waqt',
       planTitle:'Outdoor Planner — aglay 24 ghantay',planSub:'Sabz = jao · Peela = ehtiyat · Laal = andar raho',
       quizTitle:'Symptom Checker — smog ya infection?',quizSub:'Imandari se jawab den. Sirf rule-based — diagnosis nahi.',
-      checkBtn:'🔍 Meri alamat check karo',famTitle:'Family Shield — school-day faisla'}
+      checkBtn:'🔍 Meri alamat check karo',famTitle:'Family Shield — school-day faisla',
+      connecting:'connecting…',timeout:'Request ka waqt khatam ho gaya — server ne jawab dene me der ki.',
+      backendUnreach:'Backend se rabta nahi ho saka. Apna connection check karke dobara try karen.',retry:'↻ Dobara try karen',
+      liveOk:'live WAQI feed theek hai',liveDown:'live feed nahi mil rahi — results labeled Beijing historical archive (Feb 2016) se hain',
+      srcHistorical:'Historical archive (Feb 2016) — live data nahi'}
 };
 function setLang(l){
   lang=l;
@@ -285,16 +300,71 @@ function drawTrend(canvas,vals){
   x.fillText(max.toFixed(0),4,14);x.fillText(min.toFixed(0),4,H-22);
 }
 
-async function init(){
+/* Timed fetch: the UI must NEVER sit on "connecting…" forever. Aborts the
+   request after `ms` and throws a localized timeout message instead. */
+async function fetchJSON(url,ms=12000){
+  const c=new AbortController(),t=setTimeout(()=>c.abort(),ms);
   try{
-    const s=await (await fetch('/api/status')).json();
+    const r=await fetch(url,{signal:c.signal});
+    return await r.json();
+  }catch(e){
+    throw new Error(e&&e.name==='AbortError'?STR[lang].timeout:(e&&e.message)||'request failed');
+  }finally{clearTimeout(t);}
+}
+
+function setDot(state){ // 'ok' | 'warn' | 'bad'
+  $('connDot').className='dot'+(state==='ok'?'':' '+state);
+}
+
+async function init(){
+  // Reset header state; the live-feed probe runs separately so a slow WAQI
+  // upstream can never block or freeze page init again.
+  $('retryBtn').style.display='none';
+  $('liveLine').textContent=STR[lang].connecting;
+  $('provLine').textContent='';
+  $('liveFeed').textContent='';
+  setDot('ok');
+  try{
+    const s=await fetchJSON('/api/status',12000);
     const mk=(sel,defIdx)=>{s.stations.forEach((st,i)=>{const o=document.createElement('option');o.value=o.textContent=st;if(i===defIdx)o.selected=true;$(sel).appendChild(o);});};
     mk('station',0);
     mk('stationA',0);
     mk('stationB',s.stations.length>1?1:0);
     $('liveLine').textContent=s.stations.length+' stations online';
     $('provLine').textContent='action: '+esc(s.action_provider||'');
-  }catch(e){$('liveLine').textContent='backend unreachable';}
+    setDot('ok');
+    probeLive(); // fire-and-forget: resolves the live/live-feed badge when it lands
+  }catch(e){
+    $('liveLine').textContent=STR[lang].backendUnreach;
+    $('provLine').textContent=esc(e.message||'');
+    $('liveFeed').textContent='';
+    setDot('bad');
+    $('retryBtn').textContent=STR[lang].retry;
+    $('retryBtn').style.display='inline-block';
+  }
+}
+
+async function probeLive(){
+  try{
+    const l=await fetchJSON('/api/live-status',18000);
+    if(l&&l.ok){
+      $('liveFeed').textContent='🟢 '+STR[lang].liveOk+' (AQI '+esc(l.aqi)+' · '+esc(l.source||'')+')';
+      setDot('ok');
+    }else{
+      $('liveFeed').textContent='🟡 '+STR[lang].liveDown+(l&&l.error?' — '+esc(l.error):'');
+      setDot('warn');
+    }
+  }catch(e){
+    // Timeout / network failure on the probe itself: say so explicitly.
+    $('liveFeed').textContent='🟡 '+STR[lang].liveDown;
+    setDot('warn');
+  }
+}
+
+function retryInit(){
+  // Clear station dropdowns so re-init doesn't duplicate options.
+  ['station','stationA','stationB'].forEach(id=>{$(id).innerHTML='';});
+  init();
 }
 
 function renderReport(d){
@@ -338,8 +408,7 @@ async function run(){
   lastReport=null;
   $('out').innerHTML=`<div class="skel"><div class="spinner"></div>Data agent fetching · Analysis agent computing · Action agent advising…</div>`;
   try{
-    const r=await fetch(`/api/report?station=${encodeURIComponent(st)}&lang=${lang}`);
-    const d=await r.json();
+    const d=await fetchJSON(`/api/report?station=${encodeURIComponent(st)}&lang=${lang}`,25000);
     if(!d.ok)throw new Error(d.error||'report failed');
     lastReport=d;
     renderReport(d);
@@ -379,9 +448,8 @@ async function runCompare(){
   btn.disabled=true;btn.textContent='Comparing…';
   $('out').innerHTML=`<div class="skel"><div class="spinner"></div>Data agent fetching both stations · Analysis agent comparing…</div>`;
   try{
-    const r=await fetch(`/api/compare?station_a=${encodeURIComponent(sa)}&station_b=${encodeURIComponent(sb)}&lang=${lang}`);
-    const d=await r.json();
-    if(!r.ok||!d.ok)throw new Error(d.error||'compare failed');
+    const d=await fetchJSON(`/api/compare?station_a=${encodeURIComponent(sa)}&station_b=${encodeURIComponent(sb)}&lang=${lang}`,25000);
+    if(!d.ok)throw new Error(d.error||'compare failed');
     const ra=d.station_a,rb=d.station_b;
     let winner=null;
     if(ra.ok&&rb.ok){
@@ -425,9 +493,8 @@ async function runPlanner(){
   lastPlanner=null;
   $('out').innerHTML=`<div class="skel"><div class="spinner"></div>${lang==='ur'?'24 ghanton ka plan ban raha hai…':'Planning your next 24 hours…'}</div>`;
   try{
-    const r=await fetch(`/api/outdoor-planner?station=${encodeURIComponent(st)}&lang=${lang}`);
-    const d=await r.json();
-    if(!r.ok||!d.ok)throw new Error(d.error||'planner failed');
+    const d=await fetchJSON(`/api/outdoor-planner?station=${encodeURIComponent(st)}&lang=${lang}`,25000);
+    if(!d.ok)throw new Error(d.error||'planner failed');
     lastPlanner=d;renderPlanner(d);
   }catch(e){$('out').innerHTML=`<div class="skel">⚠️ ${esc(e.message)}</div>`;toast(e.message);}
   btn.disabled=false;
@@ -474,9 +541,8 @@ async function submitQuiz(){
   const btn=event.target;btn.disabled=true;
   const q=new URLSearchParams({...quizAns,lang,station:$('station').value});
   try{
-    const r=await fetch(`/api/symptom-check?${q}`);
-    const d=await r.json();
-    if(!r.ok||!d.ok)throw new Error(d.error||'check failed');
+    const d=await fetchJSON(`/api/symptom-check?${q}`,25000);
+    if(!d.ok)throw new Error(d.error||'check failed');
     lastSymptom=d;renderSymptomResult(d);
   }catch(e){toast(e.message);}
   btn.disabled=false;
@@ -498,7 +564,8 @@ function renderFamily(d){
         <div class="sch">🏫 ${esc(d.school_advice)}</div></div>
       <div class="tiplist">${tips}</div>
       <button class="copybtn" data-sum="${encodeURIComponent(sumTxt)}" onclick="copySummary(this)">📋 ${lang==='ur'?'Summary copy karo':'Copy shareable summary'}</button>
-      <div class="srcnote" style="margin-top:12px">${lang==='ur'
+      <div class="srcnote" style="margin-top:12px">📍 ${esc(d.station)} · ${esc(d.timestamp||'')} · ${esc(d.source||'')}${d.source&&d.source.indexOf('beijing_clean_dataset')===0?' · <b>'+STR[lang].srcHistorical+'</b>':''}</div>
+      <div class="srcnote" style="margin-top:6px">${lang==='ur'
         ?'Bachon ke liye sakht mayar — baligh guidance se ek darja zyada ehtiyat.'
         :'Stricter thresholds for children — one band harsher than adult guidance.'}</div>
     </div>`;
@@ -510,9 +577,8 @@ async function runFamily(){
   lastFamily=null;
   $('out').innerHTML=`<div class="skel"><div class="spinner"></div>${lang==='ur'?'Bachon ke liye faisla tayar ho raha hai…':'Preparing your family verdict…'}</div>`;
   try{
-    const r=await fetch(`/api/family-shield?station=${encodeURIComponent(st)}&lang=${lang}`);
-    const d=await r.json();
-    if(!r.ok||!d.ok)throw new Error(d.error||'family shield failed');
+    const d=await fetchJSON(`/api/family-shield?station=${encodeURIComponent(st)}&lang=${lang}`,25000);
+    if(!d.ok)throw new Error(d.error||'family shield failed');
     lastFamily=d;renderFamily(d);
   }catch(e){$('out').innerHTML=`<div class="skel">⚠️ ${esc(e.message)}</div>`;toast(e.message);}
   btn.disabled=false;
