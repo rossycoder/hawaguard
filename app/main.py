@@ -32,6 +32,24 @@ def status():
     }
 
 
+@app.get("/api/live-status")
+def live_status():
+    """Lightweight live-feed health probe.
+
+    Kept SEPARATE from /api/status so a slow/hanging WAQI upstream (15s internal
+    timeout) can never block page init — the frontend probes this in parallel
+    and updates the indicator when the result arrives. Serverless-safe:
+    live_now() already runs inside the serverless report pipeline.
+    """
+    live = orch.data.live_now()
+    return {
+        "ok": live.get("ok", False),
+        "source": live.get("source"),
+        "aqi": live.get("aqi"),
+        "error": live.get("error"),
+    }
+
+
 @app.get("/api/report")
 def report(station: str = Query(...), lang: str = Query("en")):
     if lang not in ("en", "ur"):
@@ -199,9 +217,9 @@ def symptom_check(
         if latest.get("ok"):
             cat = orch.analysis.categorize(latest["pm25"])["category"]
             if lang == "ur":
-                context = f"Note: {station} par is waqt PM2.5 {latest['pm25']:.1f} hai ({cat})."
+                context = f"Note: {station} par PM2.5 {latest['pm25']:.1f} hai ({cat}) — data source: {latest.get('source', 'labeled historical archive')}."
             else:
-                context = f"Note: PM2.5 at {station} is currently {latest['pm25']:.1f} ({cat})."
+                context = f"Note: PM2.5 at {station} is {latest['pm25']:.1f} ({cat}) — data source: {latest.get('source', 'labeled historical archive')}."
 
     return {
         "ok": True,
@@ -290,6 +308,7 @@ def family_shield(station: str = Query(...), lang: str = Query("en")):
         "school_advice": school,
         "kid_tips": FAMILY_TIPS[lang],
         "timestamp": latest.get("timestamp"),
+        "source": latest.get("source"),  # per-result data labeling (live vs historical)
         "lang": lang,
     }
 
